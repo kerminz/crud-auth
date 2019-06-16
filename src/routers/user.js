@@ -18,11 +18,6 @@ router.post('/user', async (req, res) => {
 })
 
 router.post('/user/login', async (req, res) => {
-    // look for credentials in database
-        // middleware: hash password for comparison 
-        // middleware 2: before sending user object to client, password and tokens should be removed from object!
-    // on success: 1. generate Token and send entire user object and token to client
-
     try {
         const user = await User.findByCredentials(req.body.email, req.body.password)
         const token = await user.generateAuthToken()
@@ -33,7 +28,6 @@ router.post('/user/login', async (req, res) => {
 
 })
 router.post('/user/logout', auth, async (req, res) => {
-    // remove token from db
     try {
         req.user.tokens = req.user.tokens.filter((token) => {
             return token.token !== req.token
@@ -48,7 +42,6 @@ router.post('/user/logout', auth, async (req, res) => {
 })
 
 router.post('/user/logoutAll', auth, async (req, res) => {
-    // remove all tokens from db
     try {
         req.user.tokens = []
         await req.user.save()
@@ -59,16 +52,12 @@ router.post('/user/logoutAll', auth, async (req, res) => {
 })
 
 router.get('/user/me', auth, async (req, res) => {
-    // returns user Object by fetching data from db
-    // Auth needs to check permission by looking for valid token
     res.send(req.user)
 })
 
 router.patch('/user/me', auth, async (req, res) => {
-    // define allowed operators
     const allowedUpdates = ['name', 'email', 'password']
     const updates = Object.keys(req.body)
-    // check if updates are valid
     const isValidOperation = updates.every((update) => {
         return allowedUpdates.includes(update)
     })
@@ -76,7 +65,6 @@ router.patch('/user/me', auth, async (req, res) => {
     if (!isValidOperation) {
         return res.status(400).send({ error: 'Operation not allowed!' })
     }
-    // update user in db
     updates.forEach((update) => {
         req.user[update] = req.body[update]
     })
@@ -86,7 +74,6 @@ router.patch('/user/me', auth, async (req, res) => {
 })
 
 router.delete('/user/me', auth, async (req, res) => {
-    // remove user from db
     try {
         await req.user.remove()
         res.send(req.user)
